@@ -1,0 +1,19 @@
+{
+  "name": "lisk-dapp-polls-transactions",
+  "version": "1.0.0",
+  "description": "Decentralized polling application transactions on Lisk",
+  "main": "index.js",
+  "scripts": { },
+  "keywords": [
+    "lisk",
+    "polls",
+    "dapp",
+    "transactions",
+    "javascript"
+  ],
+  "author": "https://github.com/nthe",
+  "dependencies": {
+    "@liskhq/lisk-transactions": "^3.0.1"
+  },
+  "license": "MIT"
+}
