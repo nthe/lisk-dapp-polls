@@ -1,13 +1,15 @@
-const HelloTransaction = require('./hello_transaction');
-// const PollCreate = require('./poll-create');
-// const PollStart = require('./poll-start');
-// const PollEnd = require('./poll-end');
-// const PollTake = require('./poll-take');
+const PollCreate = require('./poll-create');
+const PollDelete = require('./poll-delete');
+const PollStart  = require('./poll-start');
+const PollEnd    = require('./poll-end');
+const PollVote   = require('./poll-vote');
+const PollUnvote = require('./poll-unvote');
 
 module.exports = {
-    HelloTransaction,
-    // PollCreate,
+    PollCreate,
+    // PollDelete
     // PollStart,
     // PollEnd,
-    // PollTake
+    // PollVote,
+    // PollUnvote
 };
