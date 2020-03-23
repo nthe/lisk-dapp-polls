@@ -29,9 +29,9 @@ app.get('/', (res, req) => {
 
 /**
  * Get list of polls.
- * GET @ /poll
+ * GET @ /polls
  */
-app.get('/poll', async (req, res) => {
+app.get('/polls', async (req, res) => {
   const query = {
     type: PollCreateTransaction.TYPE,
     offset: 0,
@@ -46,15 +46,47 @@ app.get('/poll', async (req, res) => {
 });
 
 /**
+ * Get poll
+ * Get @ /poll
+ */
+app.get('/poll', async (req, res) => {
+  
+  console.log(req.query.pollId);
+
+  const poll = {
+    id: "randoooom",
+    title: "New Poll #3",
+    options: [
+      {
+        id: 0,
+        text: "Option #1"
+      },
+      {
+        id: 1,
+        text: "Option #2"
+      }
+    ] 
+  }
+  res.render('poll', { poll })
+});
+
+/**
  * Creates new poll.
  * POST @ /poll
  */
 app.post('/poll', async (req, res) => {
 
+  let options = req.body.options || [];
+  options = options.map((o, id) => ({ id, text: o}));
+
+  if (options.length < 2) {
+    res.sendStatus(400);
+  }
+
   const asset = {
     id: uuid.v1(), 
     title: req.body.title,
-    options: req.body.options,
+    options,
     timestamp: +new Date()
   };
 
@@ -68,7 +100,7 @@ app.post('/poll', async (req, res) => {
     res.sendStatus(400);
   }
 
-  res.sendStatus(200);
+  res.redirect('/polls');
 });
 
 /**
@@ -95,9 +127,9 @@ app.get('/vote', async (req, res) => {
 
 /**
  * Creates or updates new vote.
- * POST @ /vite
+ * POST @ /vote
  */
-app.post('/poll', async (req, res) => {
+app.post('/vote', async (req, res) => {
 
   const asset = {
     id: uuid.v1(), 
@@ -106,17 +138,18 @@ app.post('/poll', async (req, res) => {
     timestamp: +new Date()
   };
 
-  const response = await TxFactory(PollVoteTransaction)
-  (
-    asset,
-    defaultPassPhrase
-  );
+  // const response = await TxFactory(PollVoteTransaction)
+  // (
+  //   asset,
+  //   defaultPassPhrase
+  // );
 
-  if (response == null) {
-    res.sendStatus(400);
-  }
+  // if (response == null) {
+  //   res.sendStatus(400);
+  // }
 
-  res.sendStatus(200);
+  // res.sendStatus(200);
+  res.redirect('/polls');
 });
 
 app.listen(PORT, () => console.info(`Explorer app listening on port ${PORT}!`));

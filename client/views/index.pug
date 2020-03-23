@@ -1,22 +1,12 @@
 doctype html
 html(lang="en")
-    head
-      title Polls
-      style.
-        main {
-          font-family: monospace;
-          margin: 0 auto;
-          max-width: 600px;
-          min-width: 400px;
-        }
-
-    body
-      main
-        nav
-          div
-            a(href='/poll') Create poll
-          div
-            a(href='/vote') Vote
-
-        block content
-      
+  head
+    title Polls
+    style
+      include css/styles.css
+  body
+    main
+      block content
+    
+    script 
+      include js/script.js

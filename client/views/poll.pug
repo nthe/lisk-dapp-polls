@@ -1,0 +1,22 @@
+extend index.pug
+
+block content
+  h2.page-header Voting Booth
+  
+  //- create new poll card
+  div.card
+    form(action='/vote', method='POST')
+      div.card-header.pad
+        h3.m0 Voting ballot
+      div.card-content.pad
+        h3.pad= poll.title
+        
+        h4 Options
+        each option in poll.options
+          div.poll-item.m0.pad
+            input(type="radio", name="optionId" id=option.id, value=option.id)
+            label(for=option.id)= option.text
+
+      div.card-footer.pad
+        input(type='hidden', name='pollId', value=`${poll.id}`)
+        input(type='submit', value='Submit')

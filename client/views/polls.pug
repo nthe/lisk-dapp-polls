@@ -1,8 +1,39 @@
 extend index.pug
 
 block content
-  h2 Created polls
+  h2.page-header Polls
+  
+  //- create new poll card
+  div.card
+    form(action='/poll', method='POST')
+      div.card-header.pad
+        h3.m0 Create new poll
+      div.card-content.pad
+          div
+            label(for='title')
+              | Title
+            br
+            input(type='text', placeholder='Enter poll title' name='title', value='')
+          
+          br
 
-  each poll in polls
-    code 
-      pre= JSON.stringify(poll, null, 2)
+          div#poll-form-options
+            label
+              | Options
+            br
+            input(type='text', placeholder='Enter poll option' name='options', value='')
+
+      div.card-footer.pad
+        input(type='submit', value='Submit')
+        button(type='button')#add-option-button Add Option
+
+  //- existing polls card
+  div.card.mtxl
+    div.card-header.pad
+      h3.m0 Exitsting polls
+    div.card-content.pad
+      each poll in polls
+        a(href=`poll?pollId=${poll.id}`).poll-item.pad= poll.title
+    div.card-footer.pad
+      form(action='/polls')
+        input(type='submit', value='Refresh')
