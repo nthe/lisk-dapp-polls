@@ -1,46 +1,69 @@
-const { APIClient } = require('@liskhq/lisk-api-client');
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const cryptography = require('@liskhq/lisk-cryptography');
-const PollCreateTransaction = require('../transactions/poll-create');
+const uuid = require('uuid');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-const networkIdentifier = cryptography.getNetworkIdentifier(
-    "23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d",
-    "Lisk",
-);
+const { api } = require('./helpers/api');
+const TxFactory = require('./helpers/factory');
 
-/* Utils */
-const dateToLiskEpochTimestamp = date => (
-    Math.floor(new Date(date).getTime() / 1000) - Math.floor(new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000)
-);
+const {
+  PollCreateTransaction
+} = require('../transactions');
+
+const PORT = 3000;
+const app = express();
+
+app.set('view engine', 'pug');
+app.use(express.static('public'));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
-const API_BASEURL = 'http://localhost:4000';
-const api = new APIClient([API_BASEURL]);
-
-const passphrase = Mnemonic.generateMnemonic();
+  
+const defaultPassPhrase = 'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
 
 
-const pollCreateTransaction = new PollCreateTransaction({
-    asset: {
-      option: 1
-    },
-    networkIdentifier: networkIdentifier,
-    timestamp: dateToLiskEpochTimestamp(new Date()),
+app.get('/poll', async (req, res) => {
+  const query = {
+    type: PollCreateTransaction.TYPE,
+    offset: 0,
+    limit: 20,
+    sort: 'timestamp:desc'
+  };
+
+  const createdPollsTxs = await api.transactions.get(query);
+  const createdPolls = createdPollsTxs.data.map(({ asset }) => asset)
+  
+  console.log(JSON.stringify(createdPolls, null, 2));
+
+  res.end();
 });
 
-pollCreateTransaction.sign(passphrase);
+/**
+ * Creates new poll.
+ * POST @ /poll
+ */
+app.post('/poll', async (req, res) => {
 
-api.transactions.broadcast(pollCreateTransaction.toJSON())
-  .then(response => {
-    res.app.locals.payload = {
-        res: response.data,
-        tx: pollCreateTransaction.toJSON(),
-    };
-    console.log("++++++++++++++++ API Response +++++++++++++++++");
-    console.log(response.data);
-    console.log("++++++++++++++++ Transaction Payload +++++++++++++++++");
-    console.log(pollCreateTransaction.stringify());
-    console.log("++++++++++++++++ End Script +++++++++++++++++");
-  }).catch(err => {
-    console.log(JSON.stringify(err.errors, null, 2));
-  });
+  const asset = {
+    id: uuid.v1(), 
+    title: req.body.title,
+    options: req.body.options,
+    timestamp: +new Date()
+  };
+
+  const response = await TxFactory(PollCreateTransaction)
+  (
+    asset,
+    defaultPassPhrase
+  );
+
+  if (response == null) {
+    res.sendStatus(400);
+  }
+
+  res.sendStatus(200);
+});
+
+
+app.listen(PORT, () => console.info(`Explorer app listening on port ${PORT}!`));

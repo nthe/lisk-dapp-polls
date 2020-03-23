@@ -1,0 +1,13 @@
+{
+  "title": "New Poll #3",
+  "options": [
+    {
+      "id": 0,
+      "text": "Option #1"
+    },
+    {
+      "id": 1,
+      "text": "Option #2"
+    }
+  ] 
+}

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Decentralized polling application transactions on Lisk",
   "main": "index.js",
-  "scripts": { },
+  "scripts": {},
   "keywords": [
     "lisk",
     "polls",
@@ -13,7 +13,8 @@
   ],
   "author": "https://github.com/nthe",
   "dependencies": {
-    "@liskhq/lisk-transactions": "^3.0.1"
+    "@liskhq/lisk-transactions": "^3.0.1",
+    "uuid": "^7.0.2"
   },
   "license": "MIT"
 }

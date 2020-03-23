@@ -1,0 +1,41 @@
+doctype html
+html(lang="en")
+    head
+      title Polls
+      link(href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', rel='stylesheet')
+      script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js')
+      script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js')
+      style.
+        main {
+          margin: 0 auto;
+          max-width: 600px;
+          min-width: 400px;
+        }
+
+        .navbar {
+          background-color: #f5f5f5;
+          box-shadow: 0 0 2px #aaa;
+        }
+    body
+      main
+        nav.navbar
+          div.navbar-content
+            div#topbar-nav.navbar-menu
+              div.navbar-end
+                a(href='/create').navbar-item Create poll
+                a(href='/vote').navbar-item Vote
+        h2 Your polls
+        ul
+          li Poll #1
+          li Poll #2
+
+        h2 Create new poll
+        form(method='POST', action='/post-poll')
+          div.form-group
+            label(for='title') Poll title:
+            input.form-control(type='text', placeholder='Enter poll title' name='title')
+          div.form-group
+            label(for='passphrase') Passphrase:
+            input#recipient.form-control(type='text', placeholder='coach pupil shock error defense outdoor tube love action exist search idea' name='passphrase')
+          button.btn.btn-warning(type='submit') Send
+        

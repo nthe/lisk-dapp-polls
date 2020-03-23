@@ -23,14 +23,33 @@ class PollCreateTransaction extends BaseTransaction {
 
     validateAsset() {
         const errors = [];
-        if (!this.asset.option || typeof this.asset.option !== 'number') {
+        
+        // poll must have a title 
+        if (!this.asset.title
+            || typeof this.asset.title !== 'string') {
             errors.push(
                 new TransactionError(
-                    'Invalid "asset.option" defined on transaction',
+                    'Invalid "asset.title" defined on transaction',
                     this.id,
-                    '.asset.option',
-                    this.asset.option,
-                    'Expected int value',
+                    '.asset.title',
+                    this.asset.title,
+                    'Expected string value',
+                )
+            );
+        }
+
+        // poll must have at least 2 options
+        if (!this.asset.options
+             || this.asset.options.constructor !== Array
+             || this.asset.options.length < 2
+            ) {
+            errors.push(
+                new TransactionError(
+                    'Invalid "asset.options" defined on transaction',
+                    this.id,
+                    '.asset.options',
+                    this.asset.options,
+                    'Expected non-empty array',
                 )
             );
         }
@@ -41,41 +60,29 @@ class PollCreateTransaction extends BaseTransaction {
         const errors = [];
         const sender = store.account.get(this.senderId);
 
-        // TODO:
-        // 1) store poll on senders account
-        // 2) restrict him from creating new poll
+        // add new poll to polls list
+        const newObj = { ...sender };
+        newObj.asset.polls = newObj.asset.polls || [];
+        newObj.asset.polls.push({
+            ...this.asset
+        });
 
-        if (sender.asset && sender.asset.option) {
-            errors.push(
-                new TransactionError(
-                    'You cannot send a poll transaction multiple times',
-                    this.id,
-                    '.asset.option',
-                    this.asset.option
-                )
-            );
-        } else {
-            const newObj = {
-                ...sender,
-                asset: {
-                    // polls: {
-                    //     [pollId]: option[]
-                    // },
-                    // votes: {
-                    //     [pollId]: option
-                    // }
-                }
-            };
-            store.account.set(sender.address, newObj);
-        }
+        console.log(JSON.stringify(newObj.asset))
+        store.account.set(sender.address, newObj);
         return errors;
     }
 
     undoAsset(store) {
         const errors = [];
-        // const sender = store.account.get(this.senderId);
-        // const oldObj = { ...sender, asset: null };
-        // store.account.set(sender.address, oldObj);
+        const sender = store.account.get(this.senderId);
+        const newObj = { ...sender };
+
+        // remove latest poll, if exist
+        if (newObj.asset.polls) {
+            newObj.asset.polls.pop();
+        }
+            
+        store.account.set(sender.address, newObj);
         return errors;
     }
 }
