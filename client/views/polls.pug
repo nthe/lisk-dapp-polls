@@ -1,0 +1,8 @@
+extend index.pug
+
+block content
+  h2 Created polls
+
+  each poll in polls
+    code 
+      pre= JSON.stringify(poll, null, 2)

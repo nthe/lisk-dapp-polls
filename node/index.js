@@ -1,15 +1,23 @@
-const { Application, genesisBlockDevnet, configDevnet} = require('lisk-sdk'); 
-const PollCreateTransaction = require('../transactions/poll-create');
+const {
+  Application,
+  genesisBlockDevnet,
+  configDevnet
+} = require('lisk-sdk');
+const {
+  PollCreateTransaction,
+  PollVoteTransaction
+} = require('../transactions');
 
-configDevnet.app.label = 'hello-world-blockchain-app';
+configDevnet.app.label = 'lisk-dapp-polls';
 
-const app = new Application(genesisBlockDevnet, configDevnet); 
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app.registerTransaction(PollCreateTransaction);
+app.registerTransaction(PollVoteTransaction);
 
-app.run() 
-   .then(() => app.logger.info('App started...')) 
-   .catch(error => { 
-        console.error('Faced error in application', error);
-        process.exit(0);
-});
+app.run()
+  .then(() => app.logger.info('App started...'))
+  .catch(error => {
+    console.error('Faced error in application', error);
+    process.exit(0);
+  });

@@ -23,7 +23,7 @@ class PollCreateTransaction extends BaseTransaction {
 
     validateAsset() {
         const errors = [];
-        
+
         // poll must have a title 
         if (!this.asset.title
             || typeof this.asset.title !== 'string') {
@@ -40,9 +40,9 @@ class PollCreateTransaction extends BaseTransaction {
 
         // poll must have at least 2 options
         if (!this.asset.options
-             || this.asset.options.constructor !== Array
-             || this.asset.options.length < 2
-            ) {
+            || this.asset.options.constructor !== Array
+            || this.asset.options.length < 2
+        ) {
             errors.push(
                 new TransactionError(
                     'Invalid "asset.options" defined on transaction',
@@ -67,7 +67,6 @@ class PollCreateTransaction extends BaseTransaction {
             ...this.asset
         });
 
-        console.log(JSON.stringify(newObj.asset))
         store.account.set(sender.address, newObj);
         return errors;
     }
@@ -77,11 +76,10 @@ class PollCreateTransaction extends BaseTransaction {
         const sender = store.account.get(this.senderId);
         const newObj = { ...sender };
 
-        // remove latest poll, if exist
-        if (newObj.asset.polls) {
-            newObj.asset.polls.pop();
-        }
-            
+        // remove poll based on pollId
+        const filterFunc = item => item.pollId !== this.asset.pollId;
+        newObj.asset.polls = newObj.asset.polls.filter(filterFunc);
+
         store.account.set(sender.address, newObj);
         return errors;
     }

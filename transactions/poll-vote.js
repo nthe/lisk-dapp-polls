@@ -1,92 +1,85 @@
 const {
-  BaseTransaction,
-  TransactionError
+    BaseTransaction,
+    TransactionError
 } = require('@liskhq/lisk-transactions');
 
 class PollVoteTransaction extends BaseTransaction {
 
-  static get TYPE() {
-      return 26;
-  };
+    static get TYPE() {
+        return 22;
+    };
 
-  static get FEE() {
-      return '0';
-  };
+    static get FEE() {
+        return '0';
+    };
 
-  async prepare(store) {
-      await store.account.cache([
-          {
-              address: this.senderId,
-          },
-      ]);
-  }
-
-  validateAsset() {
-      const errors = [];
-      if (!this.asset.option || typeof this.asset.option !== 'number') {
-          errors.push(
-              new TransactionError(
-                  'Invalid "asset.option" defined on transaction',
-                  this.id,
-                  '.asset.option',
-                  this.asset.option,
-                  'Expected int value',
-              )
-          );
-      }
-      if (!this.asset.pollId || typeof this.asset.pollId !== 'string') {
-        errors.push(
-            new TransactionError(
-                'Invalid "asset.pollId" defined on transaction',
-                this.id,
-                '.asset.pollId',
-                this.asset.pollId,
-                'Expected string value',
-            )
-        );
+    async prepare(store) {
+        await store.account.cache([
+            {
+                address: this.senderId,
+            },
+        ]);
     }
-      return errors;
-  }
 
-  applyAsset(store) {
-      const errors = [];
-      const sender = store.account.get(this.senderId);
-      const { option, pollId } = this.asset;
+    validateAsset() {
+        const errors = [];
 
-      const alreadyVoted = sender.asset && (sender.asset[pollId] != undefined);
+        if (!this.asset.pollId
+            || typeof this.asset.pollId !== 'string') {
+            errors.push(
+                new TransactionError(
+                    'Invalid "asset.pollId" defined on transaction',
+                    this.id,
+                    '.asset.pollId',
+                    this.asset.pollId,
+                    'Expected string value',
+                )
+            );
+        }
 
-      if (alreadyVoted) {
-          errors.push(
-              new TransactionError(
-                  'You cannot send a poll transaction multiple times',
-                  this.id,
-                  '.asset.option',
-                  this.asset.option
-              )
-          );
-      } else {
-          const newObj = { 
-            ...sender,
-            asset: {
-              [pollId]: option
-            }
-          };
-          store.account.set(sender.address, newObj);
-      }
-      return errors;
-  }
+        if (!this.asset.optionId
+            || typeof this.asset.optionId !== 'number') {
+            errors.push(
+                new TransactionError(
+                    'Invalid "asset.optionId" defined on transaction',
+                    this.id,
+                    '.asset.optionId',
+                    this.asset.optionId,
+                    'Expected int value',
+                )
+            );
+        }
+        return errors;
+    }
 
-  undoAsset(store) {
-      const errors = [];
-      const sender = store.account.get(this.senderId);
-      const { pollId } = this.asset;
-      const oldObj = { ...sender };
+    applyAsset(store) {
+        const errors = [];
+        const sender = store.account.get(this.senderId);
 
-      delete oldObj[pollId];
+        const newObj = { ...sender };
+        const { option, pollId } = this.asset;
 
-      store.account.set(sender.address, oldObj);
-      return errors;
-  }
+        newObj.asset.votes = newObj.asset.votes || {};
+        newObj.asset.votes[pollId] = option;
+        
+        store.account.set(sender.address, newObj);
+
+        return errors;
+    }
+
+    undoAsset(store) {
+        const errors = [];
+        const sender = store.account.get(this.senderId);
+
+        const newObj = { ...sender };
+        const { pollId } = this.asset;
+
+        newObj.asset.votes = newObj.asset.votes || {};
+        delete newObj.asset.votes[pollId];
+
+        store.account.set(sender.address, newObj);
+        return errors;
+    }
 }
 
 module.exports = PollVoteTransaction;

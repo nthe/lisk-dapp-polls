@@ -1,7 +1,7 @@
 const PollCreateTransaction = require('./poll-create');
-// const PollCreateTransaction   = require('./poll-vote');
+const PollVoteTransaction   = require('./poll-vote');
 
 module.exports = {
     PollCreateTransaction,
-    // PollCreateTransaction,
+    PollVoteTransaction,
 };
