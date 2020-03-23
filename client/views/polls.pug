@@ -30,10 +30,17 @@ block content
   //- existing polls card
   div.card.mtxl
     div.card-header.pad
-      h3.m0 Exitsting polls
+      h3.m0 Poll board
     div.card-content.pad
       each poll in polls
-        a(href=`poll?pollId=${poll.id}`).poll-item.pad= poll.title
+        a(href=`poll?pollId=${poll.id}&owner=${poll.owner}`).poll-item.pad= poll.title
     div.card-footer.pad
       form(action='/polls')
         input(type='submit', value='Refresh')
+
+  div.card.mtxl
+    div.card-header.pad
+      h3.m0 Statistics
+    div.card-footer.pad
+      form(action='/vote')
+        input(type='submit', value='Recount')

@@ -23,8 +23,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const defaultPassPhrase = 'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
 
 
+const pprint = msg => console.log(JSON.stringify(msg, null, 2));
+
 app.get('/', (res, req) => {
-  req.render('index');
+  req.redirect('/polls');
 })
 
 /**
@@ -40,8 +42,10 @@ app.get('/polls', async (req, res) => {
   };
 
   const createdPollsTxs = await api.transactions.get(query);
-  const createdPolls = createdPollsTxs.data.map(({ asset }) => asset)
-  
+
+  const createdPolls = createdPollsTxs.data
+    .map(({ asset, senderId }) => ({ ...asset, owner: senderId }))
+
   res.render('polls', { polls: createdPolls });
 });
 
@@ -50,24 +54,29 @@ app.get('/polls', async (req, res) => {
  * Get @ /poll
  */
 app.get('/poll', async (req, res) => {
-  
-  console.log(req.query.pollId);
+  const query = {
+    type: PollCreateTransaction.TYPE,
+    offset: 0,
+    limit: 20,
+    sort: 'timestamp:desc',
+    senderId: req.query.owner
+  };
 
-  const poll = {
-    id: "randoooom",
-    title: "New Poll #3",
-    options: [
-      {
-        id: 0,
-        text: "Option #1"
-      },
-      {
-        id: 1,
-        text: "Option #2"
-      }
-    ] 
+  try {
+    const createdPollsTxs = await api.transactions.get(query);
+    const txAssets = createdPollsTxs.data.map(({ asset }) => asset);
+    const polls = txAssets.filter(({ id }) => id === req.query.pollId);
+
+    if (polls.length === 0) {
+      res.redirect('/polls');
+    }
+    
+    const poll = polls[0];
+    res.render('poll', { poll })
   }
-  res.render('poll', { poll })
+  catch (err) {
+    res.redirect('/polls');
+  }
 });
 
 /**
@@ -120,9 +129,9 @@ app.get('/vote', async (req, res) => {
   const createdVotesTxs = await api.transactions.get(query);
   const createdVotes = createdVotesTxs.data.map(({ asset }) => asset)
   
-  console.log(JSON.stringify(createdVotes, null, 2));
+  pprint(createdVotes);
 
-  res.end();
+  res.redirect('/polls');
 });
 
 /**
@@ -132,21 +141,21 @@ app.get('/vote', async (req, res) => {
 app.post('/vote', async (req, res) => {
 
   const asset = {
-    id: uuid.v1(), 
     pollId: req.body.pollId,
-    optionId: req.body.optionId,
+    // should be number
+    optionId: +req.body.optionId,
     timestamp: +new Date()
   };
 
-  // const response = await TxFactory(PollVoteTransaction)
-  // (
-  //   asset,
-  //   defaultPassPhrase
-  // );
+  const response = await TxFactory(PollVoteTransaction)
+  (
+    asset,
+    defaultPassPhrase
+  );
 
-  // if (response == null) {
-  //   res.sendStatus(400);
-  // }
+  if (response == null) {
+    res.sendStatus(400);
+  }
 
   // res.sendStatus(200);
   res.redirect('/polls');
