@@ -37,7 +37,7 @@ class PollVoteTransaction extends BaseTransaction {
             );
         }
 
-        if (!this.asset.optionId
+        if (this.asset.optionId === undefined
             || typeof this.asset.optionId !== 'number') {
             errors.push(
                 new TransactionError(

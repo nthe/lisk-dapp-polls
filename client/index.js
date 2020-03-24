@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { api } = require('./helpers/api');
 const TxFactory = require('./helpers/factory');
-
+const cryptography = require('@liskhq/lisk-cryptography');
 const {
   PollCreateTransaction,
   PollVoteTransaction
@@ -19,6 +19,8 @@ app.use(express.static('public'));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const SECRET = 'secret key of decentralized lisk voting applcation';
 
 /**
  * Pretty-print object to console.
@@ -53,7 +55,9 @@ function passPhraseAuthMiddleware(req, res, next) {
   }
 
   if (req.method === 'POST' && req.url === '/login' && reqPassValid) {
-    res.cookie('passPhrase', req.body.passPhrase);
+    const encCookie = cryptography.encryptPassphraseWithPassword(reqPassPhrase, SECRET);
+    const strCookie = cryptography.stringifyEncryptedPassphrase(encCookie);
+    res.cookie('passPhrase', strCookie);
     next();
     return;
   }
@@ -93,19 +97,30 @@ app.post('/login', (req, res) => {
  * GET @ /polls
  */
 app.get('/polls', async (req, res) => {
-  const query = {
-    type: PollCreateTransaction.TYPE,
-    offset: 0,
-    limit: 20,
-    sort: 'timestamp:desc'
-  };
+ 
+  let polls = [],
+    offset = 0,
+    accounts = {};
 
-  const createdPollsTxs = await api.transactions.get(query);
+  do {
+    accounts = await api.accounts.get({ limit: 100, offset });
 
-  const createdPolls = createdPollsTxs.data
-    .map(({ asset, senderId }) => ({ ...asset, owner: senderId }))
+    for (let { asset, address } of accounts.data) {
+      if (asset.polls === undefined) {
+        continue;
+      }
+      for (let poll of asset.polls) {
+        polls.push({
+          ...poll,
+          owner: address
+        });
+      }
+    }
+    offset += 100;
 
-  res.render('polls', { polls: createdPolls });
+  } while (accounts.data && accounts.data.length === 100);
+  
+  res.render('polls', { polls });
 });
 
 /**
@@ -113,29 +128,22 @@ app.get('/polls', async (req, res) => {
  * Get @ /poll
  */
 app.get('/poll', async (req, res) => {
-  const query = {
-    type: PollCreateTransaction.TYPE,
-    offset: 0,
-    limit: 20,
-    sort: 'timestamp:desc',
-    senderId: req.query.owner
-  };
 
-  try {
-    const createdPollsTxs = await api.transactions.get(query);
-    const txAssets = createdPollsTxs.data.map(({ asset }) => asset);
-    const polls = txAssets.filter(({ id }) => id === req.query.pollId);
-
-    if (polls.length === 0) {
-      res.redirect('/polls');
-    }
-    
-    const poll = polls[0];
-    res.render('poll', { poll })
+  const account = await api.accounts.get({ address: req.query.owner });
+  if (!account.data || account.data.length === 0)
+  {
+    res.redirect('/polls');
+    return;
   }
-  catch (err) {
+
+  const polls = account.data[0].asset.polls.filter(({ id }) => id === req.query.pollId);
+  if (polls.length === 0) {
     res.redirect('/polls');
   }
+  
+  const poll = polls[0];
+  res.render('poll', { poll });
+
 });
 
 /**
@@ -158,10 +166,13 @@ app.post('/poll', async (req, res) => {
     timestamp: +new Date()
   };
 
+  const encPassPhrase = cryptography.parseEncryptedPassphrase(req.cookies['passPhrase']);
+  const passPhrase = cryptography.decryptPassphraseWithPassword(encPassPhrase, SECRET);
+
   const response = await TxFactory(PollCreateTransaction)
   (
     asset,
-    req.body.passPhrase
+    passPhrase
   );
 
   if (response == null) {
@@ -184,10 +195,13 @@ app.post('/vote', async (req, res) => {
     timestamp: +new Date()
   };
 
+  const encPassPhrase = cryptography.parseEncryptedPassphrase(req.cookies['passPhrase']);
+  const passPhrase = cryptography.decryptPassphraseWithPassword(encPassPhrase, SECRET);
+
   const response = await TxFactory(PollVoteTransaction)
   (
     asset,
-    req.body.passPhrase
+    passPhrase
   );
 
   if (response == null) {
