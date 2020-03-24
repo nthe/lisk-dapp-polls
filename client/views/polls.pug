@@ -24,8 +24,9 @@ block content
             input(type='text', placeholder='Enter poll option' name='options', value='')
 
       div.card-footer.pad
+        input(type='hidden', value=`${passPhrase}`, name='passPhrase')
         input(type='submit', value='Submit')
-        button(type='button')#add-option-button Add Option
+        button(type='button', onclick='addOptionHandler()') Add Option
 
   //- existing polls card
   div.card.mtxl
@@ -41,6 +42,8 @@ block content
   div.card.mtxl
     div.card-header.pad
       h3.m0 Statistics
+    div.card-content.pad
+      | Some fancy chart over here.
     div.card-footer.pad
-      form(action='/vote')
+      form(action='/recount')
         input(type='submit', value='Recount')

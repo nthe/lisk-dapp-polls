@@ -1,7 +1,11 @@
 extend index.pug
 
 block content
-  h2.page-header Voting Booth
+  a(href='/polls').back-nav-button
+    img(width=48, src="http://img.freepik.com/free-icon/chevron-sign-left_318-42221.jpg?size=338&ext=jpg", alt="img")
+
+  h2.page-header
+    span Voting Booth
   
   //- create new poll card
   div.card
@@ -11,12 +15,13 @@ block content
       div.card-content.pad
         h1.m0.pad= poll.title
         
-        h4 Options
+        //- h4 Options
         each option in poll.options
           div.poll-item.m0.pad
             input(type="radio", name="optionId" id=option.id, value=option.id)
             label(for=option.id)= option.text
 
       div.card-footer.pad
-        input(type='hidden', name='pollId', value=`${poll.id}`)
+        input(type='hidden', name='passPhrase', value=`${passPhrase}`)
+        input(type='hidden', name='pollId',     value=`${poll.id}`)
         input(type='submit', value='Submit')

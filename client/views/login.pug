@@ -1,0 +1,20 @@
+extend index.pug
+
+block content
+  h2.page-header
+    span Lobby
+  
+  //- create new poll card
+  div.card
+    form(action='/login', method='POST')
+      div.card-header.pad
+        h3.m0 Sign In
+      div.card-content.pad
+        div
+          label(for='title')
+            | Pass-phrase
+          br
+          input(type='text', placeholder='Enter pass-phrase' name='passPhrase', value='')#pass-phrase-input
+      div.card-footer.pad
+        input(type='submit', value='Submit')
+        button(type='button', onclick='useDemoAccountHandler()') Use demo

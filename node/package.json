@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js | npx bunyan -o short",
-    "db:start": "docker run -d --name lisk_db -p 5432:5432 -e POSTGRES_USER=lisk -e POSTGRES_PASSWORD=password -e POSTGRES_DB=lisk_dev -d postgres:10",
+    "db:create": "docker run -d --name lisk_db -p 5432:5432 -e POSTGRES_USER=lisk -e POSTGRES_PASSWORD=password -e POSTGRES_DB=lisk_dev -d postgres:10",
+    "db:start": "docker start lisk_db",
     "db:stop": "docker stop $(docker ps -a -q --filter=\"name=lisk_db\")",
     "db:delete": "docker rm $(docker ps -a -q --filter=\"name=lisk_db\")"
   },

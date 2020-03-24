@@ -1,7 +1,7 @@
 const uuid = require('uuid');
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const cookieParser = require('cookie-parser');
 const { api } = require('./helpers/api');
 const TxFactory = require('./helpers/factory');
 
@@ -16,18 +16,77 @@ const app = express();
 app.set('view engine', 'pug');
 app.use(express.static('public'));
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-const defaultPassPhrase = 'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
-
-
+/**
+ * Pretty-print object to console.
+ * @param {object} msg 
+ */
 const pprint = msg => console.log(JSON.stringify(msg, null, 2));
 
-app.get('/', (res, req) => {
-  req.redirect('/polls');
-})
+/**
+ * Middleware for passing of pass-phrase.
+ */
+app.use(passPhraseAuthMiddleware);
+
+/**
+ * Checks whether pass-phrase provided.
+ * @param request
+ * @returns bool
+ */
+function passPhraseAuthMiddleware(req, res, next) {
+
+  const reqPassPhrase = req.body.passPhrase;
+  const ckePassPhrase = req.cookies['passPhrase'];
+
+  const reqPassValid = reqPassPhrase !== undefined &&
+                       reqPassPhrase !== '';
+  const ckePassValid = ckePassPhrase !== undefined &&
+                       ckePassPhrase !== 'undefined' &&
+                       ckePassPhrase !== '';
+
+  if (req.method === 'GET' && req.url === '/login') {
+    next();
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/login' && reqPassValid) {
+    res.cookie('passPhrase', req.body.passPhrase);
+    next();
+    return;
+  }
+  
+  if (!ckePassValid) {
+    res.redirect('/login');
+    return;
+  }
+
+  res.cookie('passPhrase', ckePassPhrase);
+  next();
+}
+
+/**
+ * Request root.
+ */
+app.get('/', (req, res) => {
+  res.render('polls');
+});
+
+/**
+ * Request login view.
+ */
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+/**
+ * Perform login. 
+ */
+app.post('/login', (req, res) => {
+  res.redirect('polls');
+});
 
 /**
  * Get list of polls.
@@ -102,34 +161,12 @@ app.post('/poll', async (req, res) => {
   const response = await TxFactory(PollCreateTransaction)
   (
     asset,
-    defaultPassPhrase
+    req.body.passPhrase
   );
 
   if (response == null) {
     res.sendStatus(400);
   }
-
-  res.redirect('/polls');
-});
-
-/**
- * Get vote.
- * GET @ /vote
- */
-app.get('/vote', async (req, res) => {
-  const query = {
-    type: PollVoteTransaction.TYPE,
-    offset: 0,
-    limit: 20,
-    sort: 'timestamp:desc',
-    // TODO: get sender from pass-phrase
-    // address: req.body.senderId
-  };
-
-  const createdVotesTxs = await api.transactions.get(query);
-  const createdVotes = createdVotesTxs.data.map(({ asset }) => asset)
-  
-  pprint(createdVotes);
 
   res.redirect('/polls');
 });
@@ -150,14 +187,13 @@ app.post('/vote', async (req, res) => {
   const response = await TxFactory(PollVoteTransaction)
   (
     asset,
-    defaultPassPhrase
+    req.body.passPhrase
   );
 
   if (response == null) {
     res.sendStatus(400);
   }
 
-  // res.sendStatus(200);
   res.redirect('/polls');
 });
 
