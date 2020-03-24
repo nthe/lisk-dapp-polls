@@ -1,7 +1,8 @@
 <p align="center">
   <img src="./media/screen.png" width=600>
 </p>
-<h1 align="center">Decentralized voting app on Lisk</h1>
+<h1 align="center">
+<span style='font-size:32px;'>&#128686;</span> &nbsp;/ Decentralized voting app on Lisk.</h1>
 
 ## Installation
 

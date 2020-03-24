@@ -22,6 +22,15 @@ block content
             label(for=option.id)= option.text
 
       div.card-footer.pad
-        input(type='hidden', name='passPhrase', value=`${passPhrase}`)
         input(type='hidden', name='pollId',     value=`${poll.id}`)
+        input(type='hidden', name='owner',      value=`${owner}`)
         input(type='submit', value='Submit')
+
+  div.card.mtxl
+    div.card-header.pad
+      h3.m0 Statistics
+    div.card-footer.pad
+      form(action='/stats')
+        input(type='hidden', name='pollId',     value=`${poll.id}`)
+        input(type='hidden', name='owner',      value=`${owner}`)
+        input(type='submit', value='Recount')

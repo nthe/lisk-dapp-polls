@@ -2,6 +2,7 @@ const {
     BaseTransaction,
     TransactionError,
 } = require('@liskhq/lisk-transactions')
+const lodash = require('lodash')
 
 class PollVoteTransaction extends BaseTransaction {
     static get TYPE() {
@@ -16,6 +17,9 @@ class PollVoteTransaction extends BaseTransaction {
         await store.account.cache([
             {
                 address: this.senderId,
+            },
+            {
+                address: this.asset.owner,
             },
         ])
     }
@@ -55,15 +59,23 @@ class PollVoteTransaction extends BaseTransaction {
     applyAsset(store) {
         const errors = []
         const sender = store.account.get(this.senderId)
+        const owner = store.account.get(this.asset.owner)
+        const poll = lodash.find(owner.asset.polls, { id: this.asset.pollId })
+
+        // if (!poll.isOpen) {
+        //     errors.push(
+        //         new TransactionError('Cannot vote in closed poll', this.id)
+        //     )
+        //     return errors
+        // }
 
         const newObj = { ...sender }
-        const { option, pollId } = this.asset
+        const { optionId, pollId } = this.asset
 
         newObj.asset.votes = newObj.asset.votes || {}
-        newObj.asset.votes[pollId] = option
+        newObj.asset.votes[pollId] = optionId
 
         store.account.set(sender.address, newObj)
-
         return errors
     }
 

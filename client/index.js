@@ -126,13 +126,14 @@ app.get('/polls', async (req, res) => {
  * Get @ /poll
  */
 app.get('/poll', async (req, res) => {
-    const account = await api.accounts.get({ address: req.query.owner })
-    if (!account.data || account.data.length === 0) {
+    const accounts = await api.accounts.get({ address: req.query.owner })
+    if (!accounts.data || accounts.data.length === 0) {
         res.redirect('/polls')
         return
     }
 
-    const polls = account.data[0].asset.polls.filter(
+    const account = accounts.data[0]
+    const polls = account.asset.polls.filter(
         ({ id }) => id === req.query.pollId
     )
     if (polls.length === 0) {
@@ -140,7 +141,44 @@ app.get('/poll', async (req, res) => {
     }
 
     const poll = polls[0]
-    res.render('poll', { poll })
+    res.render('poll', { poll, owner: account.address })
+})
+
+/**
+ * Calculate statistics about specific poll.
+ * GET @ /stats
+ */
+app.get('/stats', async (req, res) => {
+    const { pollId, owner } = req.query
+
+    let results = {},
+        offset = 0,
+        accounts = {}
+
+    do {
+        accounts = await api.accounts.get({ limit: 100, offset })
+
+        for (let { asset } of accounts.data) {
+            if (asset.votes === undefined) {
+                continue
+            }
+
+            const vote = asset.votes[pollId]
+            if (vote === undefined) {
+                continue
+            }
+
+            results[vote] = results[vote] === undefined ? 1 : results[vote]++
+        }
+        offset += 100
+    } while (accounts.data && accounts.data.length === 100)
+
+    res.render('stats', {
+        labels: [...Object.keys(results)],
+        data: [...Object.values(results)],
+        pollId,
+        owner,
+    })
 })
 
 /**
@@ -185,6 +223,7 @@ app.post('/poll', async (req, res) => {
  */
 app.post('/vote', async (req, res) => {
     const asset = {
+        owner: req.body.owner,
         pollId: req.body.pollId,
         // should be number
         optionId: +req.body.optionId,

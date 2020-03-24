@@ -24,7 +24,6 @@ block content
             input(type='text', placeholder='Enter poll option' name='options', value='')
 
       div.card-footer.pad
-        input(type='hidden', value=`${passPhrase}`, name='passPhrase')
         input(type='submit', value='Submit')
         button(type='button', onclick='addOptionHandler()') Add Option
 
@@ -39,11 +38,4 @@ block content
       form(action='/polls')
         input(type='submit', value='Refresh')
 
-  div.card.mtxl
-    div.card-header.pad
-      h3.m0 Statistics
-    div.card-content.pad
-      | Some fancy chart over here.
-    div.card-footer.pad
-      form(action='/recount')
-        input(type='submit', value='Recount')
+  
