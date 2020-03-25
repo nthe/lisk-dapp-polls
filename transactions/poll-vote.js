@@ -62,9 +62,12 @@ class PollVoteTransaction extends BaseTransaction {
         const owner = store.account.get(this.asset.owner)
         const poll = lodash.find(owner.asset.polls, { id: this.asset.pollId })
 
-        if (!poll.isOpen) {
+        if (!poll.state || poll.state !== 'opened') {
             errors.push(
-                new TransactionError('Cannot vote in closed poll', this.id)
+                new TransactionError(
+                    'Cannot vote in created or closed poll',
+                    this.id
+                )
             )
             return errors
         }

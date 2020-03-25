@@ -33,7 +33,14 @@ block content
       h3.m0 Poll board
     div.card-content.pad
       each poll in polls
-        a(href=`poll?pollId=${poll.id}&owner=${poll.owner}`).poll-item.pad= poll.title
+        a(href=`poll?pollId=${poll.id}&owner=${poll.owner}`).poll-item.pad
+          if poll.state === 'opened'
+            p.poll-status &#x1f513;
+          else if poll.state === 'closed'
+            p.poll-status &#x1f512;
+          else if poll.state === 'created'
+            p.poll-status &#x1f195;
+          span= poll.title
     div.card-footer.pad
       form(action='/polls')
         input(type='submit', value='Refresh')

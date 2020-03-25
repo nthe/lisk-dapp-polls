@@ -6,6 +6,7 @@ const { api } = require('./helpers/api')
 const TxFactory = require('./helpers/factory')
 const cryptography = require('@liskhq/lisk-cryptography')
 const {
+    PollUpdateTransaction,
     PollCreateTransaction,
     PollVoteTransaction,
 } = require('../transactions')
@@ -170,7 +171,7 @@ app.get('/stats', async (req, res) => {
 
     const lookup = options.reduce((acc, cur) => {
         const { id, text } = cur
-        acc[id] = { text, count: Math.round(Math.random() * 100) }
+        acc[id] = { text, count: 0 } //Math.round(Math.random() * 100) }
         return acc
     }, {})
 
@@ -218,7 +219,6 @@ app.post('/poll', async (req, res) => {
     const asset = {
         options,
         id: uuid.v1(),
-        isOpen: true,
         title: req.body.title,
         timestamp: +new Date(),
     }
@@ -262,6 +262,29 @@ app.post('/vote', async (req, res) => {
     )
 
     const response = await TxFactory(PollVoteTransaction)(asset, passPhrase)
+
+    if (response == null) {
+        res.sendStatus(400)
+    }
+
+    res.redirect('/polls')
+})
+
+app.post('/update', async (req, res) => {
+    const asset = {
+        pollId: req.body.pollId,
+        timestamp: +new Date(),
+    }
+
+    const encPassPhrase = cryptography.parseEncryptedPassphrase(
+        req.cookies['passPhrase']
+    )
+    const passPhrase = cryptography.decryptPassphraseWithPassword(
+        encPassPhrase,
+        SECRET
+    )
+
+    const response = await TxFactory(PollUpdateTransaction)(asset, passPhrase)
 
     if (response == null) {
         res.sendStatus(400)

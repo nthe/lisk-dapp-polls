@@ -2,6 +2,7 @@ const {
     BaseTransaction,
     TransactionError,
 } = require('@liskhq/lisk-transactions')
+const PollStates = require('./poll-states')
 
 class PollCreateTransaction extends BaseTransaction {
     static get TYPE() {
@@ -64,6 +65,7 @@ class PollCreateTransaction extends BaseTransaction {
         newObj.asset.polls = newObj.asset.polls || []
         newObj.asset.polls.push({
             ...this.asset,
+            state: PollStates.CREATED,
         })
 
         store.account.set(sender.address, newObj)

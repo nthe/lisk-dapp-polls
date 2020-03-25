@@ -133,3 +133,14 @@ label {
     margin-left: -25%;
     margin-top: 10%;
 }
+
+.poll-status {
+    padding: 0;
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.note {
+    color: #aaa;
+    padding: 5px;
+}

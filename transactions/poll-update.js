@@ -2,6 +2,8 @@ const {
     BaseTransaction,
     TransactionError,
 } = require('@liskhq/lisk-transactions')
+const lodash = require('lodash')
+const PollStates = require('./poll-states')
 
 class PollUpdateTransaction extends BaseTransaction {
     static get TYPE() {
@@ -23,35 +25,18 @@ class PollUpdateTransaction extends BaseTransaction {
     validateAsset() {
         const errors = []
 
-        // poll must have a title
-        if (!this.asset.title || typeof this.asset.title !== 'string') {
+        if (!this.asset.pollId || typeof this.asset.pollId !== 'string') {
             errors.push(
                 new TransactionError(
-                    'Invalid "asset.title" defined on transaction',
+                    'Invalid "asset.pollId" defined on transaction',
                     this.id,
-                    '.asset.title',
-                    this.asset.title,
+                    '.asset.pollId',
+                    this.asset.pollId,
                     'Expected string value'
                 )
             )
         }
 
-        // poll must have at least 2 options
-        if (
-            !this.asset.options ||
-            this.asset.options.constructor !== Array ||
-            this.asset.options.length < 2
-        ) {
-            errors.push(
-                new TransactionError(
-                    'Invalid "asset.options" defined on transaction',
-                    this.id,
-                    '.asset.options',
-                    this.asset.options,
-                    'Expected non-empty array'
-                )
-            )
-        }
         return errors
     }
 
@@ -59,12 +44,43 @@ class PollUpdateTransaction extends BaseTransaction {
         const errors = []
         const sender = store.account.get(this.senderId)
 
-        // add new poll to polls list
         const newObj = { ...sender }
-        newObj.asset.polls = newObj.asset.polls || []
-        newObj.asset.polls.push({
-            ...this.asset,
-        })
+
+        let poll = lodash.find(newObj.asset.polls, { id: this.asset.pollId })
+
+        if (poll === undefined) {
+            errors.push(
+                new TransactionError(
+                    'Sender does not own any the polls',
+                    this.id,
+                    '.asset.pollId',
+                    this.asset.pollId
+                )
+            )
+            return errors
+        }
+
+        if (poll.state === PollStates.CREATED) {
+            poll.state = PollStates.OPENED
+        } else if (poll.state === PollStates.OPENED) {
+            poll.state = PollStates.CLOSED
+        } else {
+            errors.push(
+                new TransactionError(
+                    'Cannot update closed poll',
+                    this.id,
+                    '.asset.pollId',
+                    this.asset.pollId
+                )
+            )
+            return errors
+        }
+
+        const prev = lodash.filter(
+            newObj.asset.polls,
+            ({ id }) => id !== this.asset.pollId
+        )
+        newObj.asset.polls = [...prev, poll]
 
         store.account.set(sender.address, newObj)
         return errors
@@ -72,14 +88,17 @@ class PollUpdateTransaction extends BaseTransaction {
 
     undoAsset(store) {
         const errors = []
-        const sender = store.account.get(this.senderId)
-        const newObj = { ...sender }
 
-        // remove poll based on pollId
-        const filterFunc = item => item.pollId !== this.asset.pollId
-        newObj.asset.polls = newObj.asset.polls.filter(filterFunc)
+        // TODO: -------------------------------------------------
 
-        store.account.set(sender.address, newObj)
+        // const sender = store.account.get(this.senderId)
+        // const newObj = { ...sender }
+
+        // // remove poll based on pollId
+        // const filterFunc = item => item.pollId !== this.asset.pollId
+        // newObj.asset.polls = newObj.asset.polls.filter(filterFunc)
+
+        // store.account.set(sender.address, newObj)
         return errors
     }
 }

@@ -24,13 +24,37 @@ block content
       div.card-footer.pad
         input(type='hidden', name='pollId',     value=`${poll.id}`)
         input(type='hidden', name='owner',      value=`${owner}`)
-        input(type='submit', value='Submit')
+        //- else
+        input(type='submit', value='Submit', disabled=poll.state !== 'opened')
+        if poll.state === 'created'
+          h4.m0.note Poll was not opened
+        if poll.state === 'closed'
+          h4.m0.note Poll was closed
 
   div.card.mtxl
     div.card-header.pad
-      h3.m0 Results
+      h3.m0 Actions
+    div.card-content.pad
+      if poll.state === 'closed'
+        p.m0.pad
+          | The poll was closed, check out the results!
+      if poll.state === 'opened'
+        p.m0.pad
+          | Poll is progress, we can see the results when the poll closes.
+      if poll.state === 'created'
+        p.m0.pad
+          | Poll was created, but you can't vote yet!
+          | Come back when the owner opens it.
     div.card-footer.pad
-      form(action='/stats')
-        input(type='hidden', name='pollId',     value=`${poll.id}`)
-        input(type='hidden', name='owner',      value=`${owner}`)
-        input(type='submit', value='Recount')
+      if poll.state !== 'closed'
+        form(action='/update', method='POST')
+          input(type='hidden', name='pollId',    value=`${poll.id}`)
+          if poll.state === 'created'
+            input(type='submit', value='Open poll')
+          else if poll.state === 'opened'
+            input(type='submit', value='Close poll')
+      else
+        form(action='/stats')
+          input(type='hidden', name='pollId',     value=`${poll.id}`)
+          input(type='hidden', name='owner',      value=`${owner}`)
+          input(type='submit', value='Show results')
