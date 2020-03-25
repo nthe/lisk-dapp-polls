@@ -1,27 +1,27 @@
 {
-  "name": "lisk-dapp-polls-node",
-  "version": "1.0.0",
-  "description": "Decentralized polling application node on Lisk",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js | npx bunyan -o short",
-    "db:create": "docker run -d --name lisk_db -p 5432:5432 -e POSTGRES_USER=lisk -e POSTGRES_PASSWORD=password -e POSTGRES_DB=lisk_dev -d postgres:10",
-    "db:start": "docker start lisk_db",
-    "db:stop": "docker stop $(docker ps -a -q --filter=\"name=lisk_db\")",
-    "db:delete": "docker rm $(docker ps -a -q --filter=\"name=lisk_db\")"
-  },
-  "keywords": [
-    "lisk",
-    "polls",
-    "dapp",
-    "node",
-    "javascript",
-    "docker",
-    "postgres"
-  ],
-  "author": "https://github.com/nthe",
-  "license": "MIT",
-  "dependencies": {
-    "lisk-sdk": "^3.0.2"
-  }
+    "name": "lisk-dapp-polls-node",
+    "version": "1.0.0",
+    "description": "Decentralized polling application node on Lisk",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js | npx bunyan -o short",
+        "db:create": "docker run -d --name lisk_db -p 5432:5432 -e POSTGRES_USER=lisk -e POSTGRES_PASSWORD=password -e POSTGRES_DB=lisk_dev -d postgres:10",
+        "db:start": "docker start lisk_db",
+        "db:stop": "docker stop $(docker ps -a -q --filter=\"name=lisk_db\")",
+        "db:delete": "docker rm $(docker ps -a -q --filter=\"name=lisk_db\")"
+    },
+    "keywords": [
+        "lisk",
+        "polls",
+        "dapp",
+        "node",
+        "javascript",
+        "docker",
+        "postgres"
+    ],
+    "author": "https://github.com/nthe",
+    "license": "MIT",
+    "dependencies": {
+        "lisk-sdk": "^3.0.2"
+    }
 }

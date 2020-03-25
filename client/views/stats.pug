@@ -5,30 +5,34 @@ block content
     img(width=36, src="http://img.freepik.com/free-icon/chevron-sign-left_318-42221.jpg?size=338&ext=jpg", alt="img")
 
   h2.page-header
-    span Statistics
-  
-  div.card.mtxl
-    div.card-header.pad
-      h3.m0 Statistics
-    div.card-content.pad
-      div.container
-        canvas#statsChart
+    span Results
+
+  div.card
     div.card-footer.pad
-      form(action='/recount')
-        input(type='submit', value='Recount')
+      h3.m0= title
+
+  div.container
+    canvas#statsChart
 
   script.
-    //- renderChart('Poll results', results.values(), results.keys())
+    const data = !{lookup}
     const ctx = document.getElementById('statsChart').getContext('2d')
     const myChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: [#{labels}],
+            labels: data.map(item => item.text),
             datasets: [
                 {
-                    //- label: 'Poll results',
-                    data: [#{data}],
+                    label: "Votes",
+                    backgroundColor: ["#00a8cc", "#ffa41b","#f67280","#00bdaa"],
+                    data: data.map(item => item.count),
                 },
             ],
         },
+        options: {
+          legend: {
+            position: 'right',
+            align: 'center'
+          }
+        }
     })

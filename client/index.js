@@ -122,25 +122,39 @@ app.get('/polls', async (req, res) => {
 })
 
 /**
- * Get poll
- * Get @ /poll
+ * Fetch specific poll from blockchain.
+ * @param {string} address address of owner
+ * @param {string} pollId id of poll
  */
-app.get('/poll', async (req, res) => {
-    const accounts = await api.accounts.get({ address: req.query.owner })
+async function fetchPoll(address, pollId) {
+    const accounts = await api.accounts.get({ address })
     if (!accounts.data || accounts.data.length === 0) {
-        res.redirect('/polls')
         return
     }
 
     const account = accounts.data[0]
-    const polls = account.asset.polls.filter(
-        ({ id }) => id === req.query.pollId
-    )
+    const polls = account.asset.polls.filter(({ id }) => id === pollId)
     if (polls.length === 0) {
-        res.redirect('/polls')
+        return
     }
 
     const poll = polls[0]
+    return {
+        poll,
+        account,
+    }
+}
+
+/**
+ * Get poll
+ * Get @ /poll
+ */
+app.get('/poll', async (req, res) => {
+    const { poll, account } = await fetchPoll(req.query.owner, req.query.pollId)
+    if (poll === undefined) {
+        res.redirect('/polls')
+        return
+    }
     res.render('poll', { poll, owner: account.address })
 })
 
@@ -151,8 +165,16 @@ app.get('/poll', async (req, res) => {
 app.get('/stats', async (req, res) => {
     const { pollId, owner } = req.query
 
-    let results = {},
-        offset = 0,
+    const { poll } = await fetchPoll(req.query.owner, req.query.pollId)
+    const { title, options } = poll
+
+    const lookup = options.reduce((acc, cur) => {
+        const { id, text } = cur
+        acc[id] = { text, count: Math.round(Math.random() * 100) }
+        return acc
+    }, {})
+
+    let offset = 0,
         accounts = {}
 
     do {
@@ -168,14 +190,14 @@ app.get('/stats', async (req, res) => {
                 continue
             }
 
-            results[vote] = results[vote] === undefined ? 1 : results[vote]++
+            lookup[vote].count += 1
         }
         offset += 100
     } while (accounts.data && accounts.data.length === 100)
 
     res.render('stats', {
-        labels: [...Object.keys(results)],
-        data: [...Object.values(results)],
+        lookup: JSON.stringify(Object.values(lookup)),
+        title,
         pollId,
         owner,
     })
@@ -194,9 +216,10 @@ app.post('/poll', async (req, res) => {
     }
 
     const asset = {
-        id: uuid.v1(),
-        title: req.body.title,
         options,
+        id: uuid.v1(),
+        isOpen: true,
+        title: req.body.title,
         timestamp: +new Date(),
     }
 

@@ -3,7 +3,7 @@ const {
     TransactionError,
 } = require('@liskhq/lisk-transactions')
 
-class PollCreateTransaction extends BaseTransaction {
+class PollUpdateTransaction extends BaseTransaction {
     static get TYPE() {
         return 23
     }
@@ -84,4 +84,4 @@ class PollCreateTransaction extends BaseTransaction {
     }
 }
 
-module.exports = PollCreateTransaction
+module.exports = PollUpdateTransaction
