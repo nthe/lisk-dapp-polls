@@ -89,16 +89,28 @@ class PollUpdateTransaction extends BaseTransaction {
     undoAsset(store) {
         const errors = []
 
-        // TODO: -------------------------------------------------
+        const sender = store.account.get(this.senderId)
+        const newObj = { ...sender }
 
-        // const sender = store.account.get(this.senderId)
-        // const newObj = { ...sender }
+        const poll = lodash.find(newObj.asset.polls, { id: this.asset.pollId })
 
-        // // remove poll based on pollId
-        // const filterFunc = item => item.pollId !== this.asset.pollId
-        // newObj.asset.polls = newObj.asset.polls.filter(filterFunc)
+        switch (poll.state) {
+            case PollStates.CLOSED:
+                poll.state = PollStates.OPENED
+                break
+            case PollStates.OPENED:
+                poll.state = PollStates.CREATED
+                break
+        }
 
-        // store.account.set(sender.address, newObj)
+        const prev = lodash.filter(
+            newObj.asset.polls,
+            ({ id }) => id !== this.asset.pollId
+        )
+
+        newObj.asset.polls = [...prev, poll]
+
+        store.account.set(sender.address, newObj)
         return errors
     }
 }
